@@ -60,6 +60,7 @@ model User {
   organization      Organization @relation(fields: [organizationId], references: [id])
   caseNotes         CaseNote[]
   auditLogs         AuditLog[]
+
   @@index([organizationId])
   @@index([email])
   @@index([role])
