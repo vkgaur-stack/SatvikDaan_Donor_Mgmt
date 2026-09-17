@@ -1,0 +1,511 @@
+// Prisma Schema for Satvikdaan Donor & Beneficiary Management System
+// Database: MySQL 8.0+
+// ORM: Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ORGANIZATIONS & USERS
+// ============================================================================
+
+model Organization {
+  id                String        @id @default(uuid())
+  name              String        @db.VarChar(255)
+  email             String        @unique @db.VarChar(255)
+  phone             String?       @db.VarChar(20)
+  address           String?       @db.LongText
+  website           String?       @db.VarChar(255)
+  registrationNo    String?       @db.VarChar(100) // NGO registration number
+  taxId             String?       @db.VarChar(100) // GST/Tax ID for tax receipts
+  logo              String?       @db.LongText // Base64 or file URL
+  status            String        @default("active") @db.VarChar(50) // active/inactive
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  // Relations
+  users             User[]
+  programs          Program[]
+  beneficiaries     Beneficiary[]
+  donors            Donor[]
+  campaigns         Campaign[]
+  donations         Donation[]
+  auditorRoles      AuditLog[]
+
+  @@index([status])
+}
+
+model User {
+  id                String        @id @default(uuid())
+  organizationId    String
+  email             String        @unique @db.VarChar(255)
+  name              String        @db.VarChar(255)
+  phone             String?       @db.VarChar(20)
+  role              String        @db.VarChar(50) // admin/program_manager/field_worker/donor/auditor
+  status            String        @default("active") @db.VarChar(50) // active/inactive/suspended
+  passwordHash      String        @db.VarChar(255)
+  lastLogin         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  caseNotes         CaseNote[]
+  auditLogs         AuditLog[]
+  donations         Donation[] @relation("DonorUser")
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+// ============================================================================
+// PROGRAMS
+// ============================================================================
+
+model Program {
+  id                String        @id @default(uuid())
+  organizationId    String
+  name              String        @db.VarChar(255)
+  category          String        @db.VarChar(50) // healthcare/education/vocational/food
+  description       String?       @db.LongText
+  targetBeneficiaries Int?
+  currentBeneficiaries Int @default(0)
+  budget            Decimal       @default(0) @db.Decimal(15, 2)
+  spent             Decimal       @default(0) @db.Decimal(15, 2)
+  startDate         DateTime
+  endDate           DateTime?
+  status            String        @default("active") @db.VarChar(50) // active/completed/paused/draft
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  enrollments       Enrollment[]
+  aidDeliveries     AidDelivery[]
+  surveys           Survey[]
+  donations         Donation[] @relation("DonationProgram")
+
+  @@index([organizationId])
+  @@index([category])
+  @@index([status])
+}
+
+// ============================================================================
+// BENEFICIARIES & HOUSEHOLDS
+// ============================================================================
+
+model Beneficiary {
+  id                String        @id @default(uuid())
+  organizationId    String
+  uniqueId          String?       @db.VarChar(255) // Aadhar/National ID (encrypted in app)
+  uniqueIdType      String?       @db.VarChar(50) // aadhar/voter_id/pan/driving_license
+  firstName         String        @db.VarChar(255)
+  lastName          String?       @db.VarChar(255)
+  phone             String?       @db.VarChar(20) // Encrypted in app
+  email             String?       @db.VarChar(255) // Encrypted in app
+  gender            String?       @db.VarChar(20) // male/female/other
+  dateOfBirth       DateTime?
+  address           String?       @db.LongText // Encrypted in app
+  latitude          Float?
+  longitude         Float?
+  profilePhoto      String?       @db.LongText // Base64 or URL
+  status            String        @default("registered") @db.VarChar(50) // registered/verified/active/inactive/graduated
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  household         Household?
+  enrollments       Enrollment[]
+  aidDeliveries     AidDelivery[]
+  documents         Document[]
+  caseNotes         CaseNote[]
+  surveys           Survey[]
+  biometricData     BiometricData[]
+
+  @@index([organizationId])
+  @@index([uniqueId])
+  @@index([status])
+  @@index([gender])
+  @@index([latitude, longitude])
+}
+
+model Household {
+  id                String        @id @default(uuid())
+  beneficiaryId     String        @unique
+  householdHead     String        @db.VarChar(255)
+  membersCount      Int           @default(1)
+  monthlyIncome     Decimal?      @db.Decimal(12, 2) // Encrypted in app
+  incomeCategory    String?       @db.VarChar(50) // low/medium/high
+  address           String?       @db.LongText
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+
+  @@index([beneficiaryId])
+}
+
+// ============================================================================
+// PROGRAMS & ENROLLMENTS
+// ============================================================================
+
+model Enrollment {
+  id                String        @id @default(uuid())
+  beneficiaryId     String
+  programId         String
+  eligibilityScore  Float?        // 0-100 automated scoring
+  verifiedBy        String?       // User ID who verified
+  verificationDate  DateTime?
+  enrollmentDate    DateTime      @default(now())
+  completionDate    DateTime?
+  status            String        @default("enrolled") @db.VarChar(50) // enrolled/in_progress/completed/dropped_out
+  notes             String?       @db.LongText
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  program           Program       @relation(fields: [programId], references: [id])
+  attendances       Attendance[]
+  aidDeliveries     AidDelivery[]
+
+  @@unique([beneficiaryId, programId])
+  @@index([programId])
+  @@index([status])
+}
+
+model Attendance {
+  id                String        @id @default(uuid())
+  enrollmentId      String
+  sessionDate       DateTime
+  status            String        @db.VarChar(50) // present/absent/excused
+  notes             String?       @db.LongText
+  createdAt         DateTime      @default(now())
+
+  // Relations
+  enrollment        Enrollment    @relation(fields: [enrollmentId], references: [id])
+
+  @@index([enrollmentId])
+  @@index([sessionDate])
+}
+
+// ============================================================================
+// AID & SERVICE DELIVERY
+// ============================================================================
+
+model AidDelivery {
+  id                String        @id @default(uuid())
+  beneficiaryId     String
+  programId         String
+  enrollmentId      String
+  deliveryType      String        @db.VarChar(50) // cash/in_kind/service
+  amount            Decimal?      @db.Decimal(15, 2) // Encrypted in app if cash
+  currency          String        @default("INR") @db.VarChar(10)
+  description       String?       @db.LongText
+  deliveryDate      DateTime
+  status            String        @default("pending") @db.VarChar(50) // pending/delivered/verified/rejected
+  proofOfDelivery   String?       @db.LongText // Photo URL or base64
+  signature         String?       @db.LongText // Digital signature
+  notes             String?       @db.LongText
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  program           Program       @relation(fields: [programId], references: [id])
+  enrollment        Enrollment    @relation(fields: [enrollmentId], references: [id])
+
+  @@index([beneficiaryId])
+  @@index([programId])
+  @@index([status])
+  @@index([deliveryDate])
+}
+
+// ============================================================================
+// CASE MANAGEMENT
+// ============================================================================
+
+model CaseNote {
+  id                String        @id @default(uuid())
+  beneficiaryId     String
+  createdById       String
+  noteType          String        @db.VarChar(50) // progress/referral/grievance/counseling
+  content           String        @db.LongText // Encrypted in app for sensitive data
+  actionItems       String?       @db.LongText
+  isResolved        Boolean       @default(false)
+  resolvedAt        DateTime?
+  resolvedBy        String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  createdBy         User          @relation(fields: [createdById], references: [id])
+
+  @@index([beneficiaryId])
+  @@index([noteType])
+  @@index([isResolved])
+}
+
+// ============================================================================
+// DOCUMENTS & BIOMETRICS
+// ============================================================================
+
+model Document {
+  id                String        @id @default(uuid())
+  beneficiaryId     String
+  documentType      String        @db.VarChar(50) // id/medical/education/consent/other
+  fileName          String        @db.VarChar(255)
+  fileUrl           String        @db.LongText // Encrypted storage reference
+  fileMimeType      String?       @db.VarChar(100)
+  fileSize          Int?          // Bytes
+  uploadedBy        String?       // User ID
+  verifiedBy        String?       // User ID
+  verificationDate  DateTime?
+  isVerified        Boolean       @default(false)
+  expiryDate        DateTime?
+  notes             String?       @db.LongText
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  // Relations
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+
+  @@index([beneficiaryId])
+  @@index([documentType])
+  @@index([isVerified])
+}
+
+model BiometricData {
+  id                String        @id @default(uuid())
+  beneficiaryId     String
+  biometricType     String        @db.VarChar(50) // fingerprint/iris/facial
+  biometricData     String        @db.LongText // Encrypted hash
+  capturedAt        DateTime
+  verificationStatus String       @default("unverified") @db.VarChar(50) // unverified/verified/duplicate_flagged
+  duplicateMatch    String?       // Matched beneficiary ID if duplicate
+  matchScore        Float?        // 0-100 confidence score
+  createdAt         DateTime      @default(now())
+
+  // Relations
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+
+  @@index([beneficiaryId])
+  @@index([verificationStatus])
+  @@index([matchScore])
+}
+
+// ============================================================================
+// SURVEYS & IMPACT MEASUREMENT
+// ============================================================================
+
+model Survey {
+  id                String        @id @default(uuid())
+  beneficiaryId     String
+  programId         String
+  surveyType        String        @db.VarChar(50) // baseline/midline/endline
+  surveyData        String        @db.LongText // JSON format
+  completedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  beneficiary       Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+  program           Program       @relation(fields: [programId], references: [id])
+
+  @@index([beneficiaryId])
+  @@index([programId])
+  @@index([surveyType])
+}
+
+// ============================================================================
+// DONORS & DONATIONS
+// ============================================================================
+
+model Donor {
+  id                String        @id @default(uuid())
+  organizationId    String
+  firstName         String        @db.VarChar(255)
+  lastName          String?       @db.VarChar(255)
+  email             String        @db.VarChar(255) // Encrypted in app
+  phone             String?       @db.VarChar(20) // Encrypted in app
+  address           String?       @db.LongText
+  panNumber         String?       @db.VarChar(100) // For tax receipts (encrypted)
+  companyName       String?       @db.VarChar(255)
+  donorType         String        @default("individual") @db.VarChar(50) // individual/corporate
+  tier              String        @default("bronze") @db.VarChar(50) // bronze/silver/gold/major
+  status            String        @default("active") @db.VarChar(50) // active/lapsed/inactive
+  lifetimeValue     Decimal       @default(0) @db.Decimal(15, 2)
+  lastGiftDate      DateTime?
+  preferredContact  String?       @db.VarChar(50) // email/phone/sms
+  notes             String?       @db.LongText
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  donations         Donation[]
+  pledges           Pledge[]
+
+  @@index([organizationId])
+  @@index([tier])
+  @@index([status])
+  @@index([email])
+}
+
+model Donation {
+  id                String        @id @default(uuid())
+  organizationId    String
+  donorId           String
+  programId         String?
+  amount            Decimal       @db.Decimal(15, 2)
+  currency          String        @default("INR") @db.VarChar(10)
+  donationDate      DateTime
+  paymentMethod     String        @db.VarChar(50) // online/cheque/cash/bank_transfer
+  razorpayOrderId   String?       @db.VarChar(255) // For Razorpay integration
+  razorpayPaymentId String?       @db.VarChar(255)
+  transactionId     String?       @db.VarChar(255)
+  frequency         String        @default("one_off") @db.VarChar(50) // one_off/monthly/annual/recurring
+  campaignTag       String?       @db.VarChar(255)
+  status            String        @default("completed") @db.VarChar(50) // pending/completed/failed/refunded
+  taxReceiptStatus  String        @default("pending") @db.VarChar(50) // pending/issued/cancelled
+  taxReceiptNo      String?       @db.VarChar(100)
+  taxReceiptDate    DateTime?
+  acknowledgmentSent Boolean      @default(false)
+  acknowledgmentDate DateTime?
+  notes             String?       @db.LongText
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  donor             Donor         @relation(fields: [donorId], references: [id])
+  program           Program?      @relation("DonationProgram", fields: [programId], references: [id])
+
+  @@index([organizationId])
+  @@index([donorId])
+  @@index([programId])
+  @@index([donationDate])
+  @@index([status])
+  @@index([taxReceiptStatus])
+}
+
+model Pledge {
+  id                String        @id @default(uuid())
+  donorId           String
+  amount            Decimal       @db.Decimal(15, 2)
+  currency          String        @default("INR") @db.VarChar(10)
+  pledgeDate        DateTime
+  scheduledDate     DateTime?
+  frequency         String        @db.VarChar(50) // monthly/quarterly/annual
+  status            String        @default("active") @db.VarChar(50) // active/completed/cancelled
+  fulfillmentCount  Int           @default(0)
+  totalFulfilled    Decimal       @default(0) @db.Decimal(15, 2)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  donor             Donor         @relation(fields: [donorId], references: [id])
+
+  @@index([donorId])
+  @@index([status])
+}
+
+// ============================================================================
+// CAMPAIGNS
+// ============================================================================
+
+model Campaign {
+  id                String        @id @default(uuid())
+  organizationId    String
+  name              String        @db.VarChar(255)
+  description       String?       @db.LongText
+  targetGoal        Decimal       @db.Decimal(15, 2)
+  currentRaised     Decimal       @default(0) @db.Decimal(15, 2)
+  category          String?       @db.VarChar(100)
+  startDate         DateTime
+  endDate           DateTime?
+  status            String        @default("active") @db.VarChar(50) // active/ended/paused/draft
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+// ============================================================================
+// OFFLINE SYNC QUEUE
+// ============================================================================
+
+model OfflineSyncQueue {
+  id                String        @id @default(uuid())
+  userId            String
+  entity            String        @db.VarChar(100) // beneficiary/aid_delivery/attendance/etc
+  entityId          String        @db.VarChar(255)
+  action            String        @db.VarChar(50) // create/update/delete
+  payload           String        @db.LongText // JSON data
+  status            String        @default("pending") @db.VarChar(50) // pending/synced/failed/conflict
+  errorMessage      String?       @db.LongText
+  syncAttempts      Int           @default(0)
+  lastAttempt       DateTime?
+  syncedAt          DateTime?
+  createdAt         DateTime      @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// AUDIT LOGGING
+// ============================================================================
+
+model AuditLog {
+  id                String        @id @default(uuid())
+  organizationId    String
+  userId            String
+  action            String        @db.VarChar(100) // view/create/update/delete/export
+  resourceType      String        @db.VarChar(100) // beneficiary/donation/document/etc
+  resourceId        String?       @db.VarChar(255)
+  beforeValue       String?       @db.LongText // JSON (for updates)
+  afterValue        String?       @db.LongText // JSON (for updates)
+  ipAddress         String?       @db.VarChar(50)
+  userAgent         String?       @db.LongText
+  createdAt         DateTime      @default(now())
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([action])
+  @@index([resourceType])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// SOFT DELETE HELPER (Optional - for global soft delete support)
+// ============================================================================
+
+// Note: Implement soft delete logic at application level or use triggers
+// Fields: deletedAt on Organization, User, Beneficiary, Donor, Donation, etc.
