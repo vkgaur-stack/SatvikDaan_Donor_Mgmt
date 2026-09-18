@@ -46,6 +46,7 @@ export interface FormButtonProps extends HTMLAttributes<HTMLButtonElement> {
 export interface FormSectionProps {
   title?: string;
   subtitle?: string;
+  description?: string;
   children: React.ReactNode;
 }
 
@@ -209,13 +210,16 @@ FormButton.displayName = 'FormButton';
 export const FormSection: React.FC<FormSectionProps> = ({
   title,
   subtitle,
+  description,
   children,
 }) => (
   <div className="bg-white rounded-lg shadow p-6 mb-6">
     {title && (
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-        {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+        {(subtitle || description) && (
+          <p className="text-sm text-gray-600 mt-1">{subtitle || description}</p>
+        )}
       </div>
     )}
     <div>{children}</div>
