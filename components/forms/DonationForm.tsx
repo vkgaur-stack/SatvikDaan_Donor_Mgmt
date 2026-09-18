@@ -404,9 +404,9 @@ export const DonationForm: React.FC<DonationFormProps> = ({
               Donation Amount:
             </p>
             <p className="text-3xl font-bold text-blue-600">
-              ₹{parseFloat(amount || '0').toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-              })}
+              ₹{parseFloat(String(amount) || '0').toLocaleString('en-IN', {
+  minimumFractionDigits: 2,
+})}
             </p>
             {paymentMethod === 'online' && (
               <p className="text-xs text-gray-500 mt-2">
