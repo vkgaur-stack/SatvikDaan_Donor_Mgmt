@@ -162,7 +162,7 @@ export const EnrollmentForm: React.FC<EnrollmentFormProps> = ({
                 label="Beneficiary"
                 required
                 error={errors.beneficiaryId}
-                options={beneficiaries}
+                options={beneficiaries.map(b => ({ value: b.id, label: b.label }))}
                 placeholder="Select beneficiary"
                 disabled={!!beneficiaryId}
               />
