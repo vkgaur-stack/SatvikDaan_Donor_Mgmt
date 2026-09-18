@@ -31,7 +31,7 @@ export interface SelectProps extends Omit<InputHTMLAttributes<HTMLSelectElement>
   error?: string;
 }
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value'> {
   label?: string;
   checked?: boolean;
 }
