@@ -1,5 +1,4 @@
-// components/forms/BeneficiaryRegistrationForm.tsx
-// Multi-step beneficiary registration form with offline support
+'use client';
 
 import React, { useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -15,6 +14,7 @@ import {
   FormSection,
   Alert,
   SyncStatus,
+  SelectOption,
 } from './base-components';
 import { useCreateBeneficiary, CreateBeneficiaryInput } from '@/hooks/useApi';
 
@@ -101,13 +101,12 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="firstName"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="First Name"
-            placeholder="Enter first name"
-            required
-            error={errors.firstName?.message}
-          />
+          <FormField label="First Name" error={errors.firstName?.message} required>
+            <TextInput
+              {...field}
+              placeholder="Enter first name"
+            />
+          </FormField>
         )}
       />
 
@@ -115,12 +114,12 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="lastName"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="Last Name"
-            placeholder="Enter last name"
-            error={errors. lastName?.message}
-          />
+          <FormField label="Last Name" error={errors.lastName?.message}>
+            <TextInput
+              {...field}
+              placeholder="Enter last name"
+            />
+          </FormField>
         )}
       />
 
@@ -128,14 +127,12 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="phone"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="Phone Number"
-            placeholder="10-digit mobile number"
-            required
-            error={errors.phone}
-            helperText="Without +91 prefix"
-          />
+          <FormField label="Phone Number" error={errors.phone?.message} required>
+            <TextInput
+              {...field}
+              placeholder="10-digit mobile number"
+            />
+          </FormField>
         )}
       />
 
@@ -143,13 +140,13 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="email"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="Email (Optional)"
-            type="email"
-            placeholder="email@example.com"
-            error={errors.email}
-          />
+          <FormField label="Email (Optional)" error={errors.email?.message}>
+            <TextInput
+              {...field}
+              type="email"
+              placeholder="email@example.com"
+            />
+          </FormField>
         )}
       />
 
@@ -157,18 +154,17 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="gender"
         control={control}
         render={({ field }) => (
-          <Select
-            {...field}
-            label="Gender"
-            required
-            error={errors.gender}
-            options={[
-              { value: 'male', label: 'Male' },
-              { value: 'female', label: 'Female' },
-              { value: 'other', label: 'Other' },
-            ]}
-            placeholder="Select gender"
-          />
+          <FormField label="Gender" error={errors.gender?.message} required>
+            <Select
+              {...field}
+              options={[
+                { value: 'male', label: 'Male' },
+                { value: 'female', label: 'Female' },
+                { value: 'other', label: 'Other' },
+              ]}
+              placeholder="Select gender"
+            />
+          </FormField>
         )}
       />
 
@@ -176,12 +172,12 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="dateOfBirth"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="Date of Birth (Optional)"
-            type="date"
-            error={errors.dateOfBirth}
-          />
+          <FormField label="Date of Birth (Optional)" error={errors.dateOfBirth?.message}>
+            <TextInput
+              {...field}
+              type="date"
+            />
+          </FormField>
         )}
       />
     </FormSection>
@@ -194,17 +190,17 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="address"
         control={control}
         render={({ field }) => (
-          <TextArea
-            {...field}
-            label="Address (Optional)"
-            placeholder="Full residential address"
-            error={errors.address}
-            helperText="Village, street, district details"
-          />
+          <FormField label="Address (Optional)" error={errors.address?.message}>
+            <TextArea
+              {...field}
+              placeholder="Full residential address"
+              rows={4}
+            />
+          </FormField>
         )}
       />
 
-      <div className="col-span-2 flex items-center space-x-2">
+      <FormField>
         <Checkbox
           checked={useDeviceLocation}
           onChange={(e) => {
@@ -213,24 +209,24 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
           }}
           label="Capture GPS Location"
         />
-      </div>
+      </FormField>
 
       <Controller
         name="uniqueIdType"
         control={control}
         render={({ field }) => (
-          <Select
-            {...field}
-            label="ID Type (Optional)"
-            options={[
-              { value: 'aadhar', label: 'Aadhar' },
-              { value: 'pan', label: 'PAN' },
-              { value: 'voter_id', label: 'Voter ID' },
-              { value: 'driving_license', label: 'Driving License' },
-            ]}
-            placeholder="Select ID type"
-            error={errors.uniqueIdType}
-          />
+          <FormField label="ID Type (Optional)" error={errors.uniqueIdType?.message}>
+            <Select
+              {...field}
+              options={[
+                { value: 'aadhar', label: 'Aadhar' },
+                { value: 'pan', label: 'PAN' },
+                { value: 'voter_id', label: 'Voter ID' },
+                { value: 'driving_license', label: 'Driving License' },
+              ]}
+              placeholder="Select ID type"
+            />
+          </FormField>
         )}
       />
 
@@ -238,13 +234,12 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="uniqueId"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="ID Number (Optional)"
-            placeholder="ID number"
-            error={errors.uniqueId}
-            helperText="This will be encrypted for security"
-          />
+          <FormField label="ID Number (Optional)" error={errors.uniqueId?.message}>
+            <TextInput
+              {...field}
+              placeholder="ID number"
+            />
+          </FormField>
         )}
       />
     </FormSection>
@@ -257,12 +252,12 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="householdHead"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="Household Head (Optional)"
-            placeholder="Name of head"
-            error={errors.householdHead}
-          />
+          <FormField label="Household Head (Optional)" error={errors.householdHead?.message}>
+            <TextInput
+              {...field}
+              placeholder="Name of head"
+            />
+          </FormField>
         )}
       />
 
@@ -270,13 +265,13 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="membersCount"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="Household Members (Optional)"
-            type="number"
-            placeholder="Number of members"
-            error={errors.membersCount}
-          />
+          <FormField label="Household Members (Optional)" error={errors.membersCount?.message}>
+            <TextInput
+              {...field}
+              type="number"
+              placeholder="Number of members"
+            />
+          </FormField>
         )}
       />
 
@@ -284,31 +279,31 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
         name="monthlyIncome"
         control={control}
         render={({ field }) => (
-          <TextInput
-            {...field}
-            label="Monthly Income (Optional)"
-            type="number"
-            placeholder="In rupees"
-            error={errors.monthlyIncome}
-          />
+          <FormField label="Monthly Income (Optional)" error={errors.monthlyIncome?.message}>
+            <TextInput
+              {...field}
+              type="number"
+              placeholder="In rupees"
+            />
+          </FormField>
         )}
       />
 
-      <div className="col-span-1">
+      <FormField>
         <Controller
           name="hasRationCard"
           control={control}
           render={({ field }) => (
-            <Checkbox {...field} label="Has Ration Card" />
+            <Checkbox
+              {...field}
+              label="Has Ration Card"
+            />
           )}
         />
-      </div>
+      </FormField>
 
       {programs.length > 0 && (
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Enroll in Programs (Optional)
-          </label>
+        <FormField label="Enroll in Programs (Optional)">
           <div className="space-y-2">
             {programs.map((prog) => (
               <Controller
@@ -332,7 +327,7 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
               />
             ))}
           </div>
-        </div>
+        </FormField>
       )}
     </FormSection>
   );
@@ -404,26 +399,25 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
       {error && (
         <Alert
           type="error"
-          message={error}
-          onDismiss={() => {
-            /* Clear error */
-          }}
-        />
+        >
+          {error}
+        </Alert>
       )}
       {success && (
         <Alert
           type="success"
-          message="Beneficiary registered successfully!"
-          onDismiss={() => {
-            /* Clear success */
-          }}
-        />
+        >
+          Beneficiary registered successfully!
+        </Alert>
       )}
 
       {/* Sync Status */}
-      {!navigator.onLine && (
+      {typeof navigator !== 'undefined' && !navigator.onLine && (
         <div className="mb-4">
-          <SyncStatus status="pending" message="Working offline - data will sync when online" />
+          <SyncStatus
+            status="syncing"
+            message="Working offline - data will sync when online"
+          />
         </div>
       )}
 
@@ -458,11 +452,10 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
           ) : (
             <FormButton
               type="submit"
-              loading={loading || isSubmitting}
               disabled={isSubmitting || loading}
               className="ml-auto"
             >
-              Register Beneficiary
+              {loading || isSubmitting ? 'Registering...' : 'Register Beneficiary'}
             </FormButton>
           )}
         </div>
@@ -474,7 +467,7 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
           <p className="text-green-800 font-medium">
             ✓ Beneficiary #{data.id} registered successfully
           </p>
-          {!navigator.onLine && (
+          {typeof navigator !== 'undefined' && !navigator.onLine && (
             <p className="text-sm text-green-700 mt-2">
               Data saved locally and will sync when connection is restored
             </p>
@@ -484,3 +477,5 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
     </div>
   );
 };
+
+export default BeneficiaryRegistrationForm;
