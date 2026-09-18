@@ -2,6 +2,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { protectedRoute, validateRequestBody } from '@/lib/auth';
+import { successResponse, errorResponse } from '@/lib/helpers';
+import { encryptField, decryptField } from '@/lib/crypto';
 import {
   protectedRoute,
   validateRequestBody,
