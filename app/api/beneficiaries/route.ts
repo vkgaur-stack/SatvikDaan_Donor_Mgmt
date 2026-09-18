@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
           200
         );
       } catch (error) {
-        return errorResponse(error);
+        return errorResponse(error instanceof Error ? error : new Error(String(error)));
       }
     },
     ['admin', 'program_manager', 'field_worker']
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
 
         return successResponse(response, 201, 'Donation recorded successfully');
       } catch (error) {
-        return errorResponse(error);
+        return errorResponse(error instanceof Error ? error : new Error(String(error)));
       }
     },
     ['admin', 'program_manager']
