@@ -174,7 +174,7 @@ export const POST = protectedRoute(
       const response: DonationResponse = {
         id: donation.id,
         donorId: donation.donorId,
-        amount: donation.amount,
+        amount: Number(donation.amount),
         currency: donation.currency,
         donationDate: donation.donationDate.toISOString(),
         paymentMethod: donation.paymentMethod,
