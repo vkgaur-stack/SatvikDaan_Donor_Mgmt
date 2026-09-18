@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
         await createAuditLog(
           user.organizationId,
           user.id,
-          'list',
+          'view',
           'beneficiaries',
           '',
           req
