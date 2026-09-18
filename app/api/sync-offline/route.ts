@@ -11,14 +11,6 @@ import {
   ErrorCode,
   OfflineSyncQueueItem,
 } from '@/types';
-import {
-  ProcessSyncRequest,
-  ProcessSyncResponse,
-  AuthUser,
-  ApiError,
-  ErrorCode,
-  OfflineSyncQueueItem,
-} from '@/types';
 
 // ============================================================================
 // GET /api/sync/offline - Get pending sync queue
