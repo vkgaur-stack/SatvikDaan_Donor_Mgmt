@@ -17,8 +17,8 @@ import {
   createAuditLog,
   getBeneficiaryOrThrow,
   sendBeneficiaryNotification,
-} from '@/utils/helpers';
-import { encryptField, decryptField } from '@/utils/crypto';
+} from '@/lib/helpers';
+import { encryptField, decryptField } from '@/lib/crypto';
 import {
   CreateBeneficiaryRequest,
   UpdateBeneficiaryRequest,
