@@ -93,9 +93,9 @@ export const GET = protectedRoute(
         },
         200
       );
-    } catch (error) {
-      return errorResponse(error);
-    }
+ } catch (error) {
+  return errorResponse(error instanceof Error ? error : new Error(String(error)));
+}
   },
   ['admin', 'program_manager']
 );
@@ -185,9 +185,9 @@ export const POST = protectedRoute(
       };
 
       return successResponse(response, 201, 'Donation recorded successfully');
-    } catch (error) {
-      return errorResponse(error);
-    }
+} catch (error) {
+  return errorResponse(error instanceof Error ? error : new Error(String(error)));
+}
   },
   ['admin', 'program_manager']
 );
