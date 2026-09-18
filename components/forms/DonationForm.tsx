@@ -212,13 +212,11 @@ export const DonationForm: React.FC<DonationFormProps> = ({
 
       {/* Status Messages */}
       {error && (
-        <Alert
-          type="error"
-          message={error}
-          onDismiss={() => {
-            /* Clear */
-          }}
-        />
+{error && (
+  <Alert type="error">
+    {error}
+  </Alert>
+)}
       )}
       {success && (
         <Alert
