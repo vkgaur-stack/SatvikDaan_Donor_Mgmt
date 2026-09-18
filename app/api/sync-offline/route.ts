@@ -1,4 +1,3 @@
-// app/api/sync/offline/route.ts - Offline data sync & conflict resolution
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { protectedRoute, validateRequestBody } from '@/lib/auth';
