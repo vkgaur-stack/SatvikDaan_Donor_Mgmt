@@ -2,14 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { protectedRoute, validateRequestBody } from '@/lib/auth';
-import { successResponse, errorResponse } from '@/lib/helpers';
-import { encryptField, decryptField } from '@/lib/crypto';
-import {
-  protectedRoute,
-  validateRequestBody,
-  requireRole,
-} from '@/middleware/auth';
+import { protectedRoute, validateRequestBody, requireRole } from '@/lib/auth';
 import {
   successResponse,
   errorResponse,
@@ -20,8 +13,7 @@ import {
 } from '@/lib/helpers';
 import { encryptField, decryptField } from '@/lib/crypto';
 import {
-  CreateBeneficiaryRequest,
-  UpdateBeneficiaryRequest,
+  BeneficiaryInput,
   BeneficiaryResponse,
   AuthUser,
   ApiError,
