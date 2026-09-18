@@ -47,9 +47,9 @@ export const GET = protectedRoute(
         },
         200
       );
-    } catch (error) {
-      return errorResponse(error);
-    }
+} catch (error) {
+  return errorResponse(error instanceof Error ? error : new Error(String(error)));
+}
   },
   ['field_worker', 'program_manager']
 );
@@ -144,9 +144,9 @@ export const POST = protectedRoute(
       );
 
       return successResponse(results, 200, 'Sync processing completed');
-    } catch (error) {
-      return errorResponse(error);
-    }
+} catch (error) {
+  return errorResponse(error instanceof Error ? error : new Error(String(error)));
+}
   },
   ['field_worker']
 );
