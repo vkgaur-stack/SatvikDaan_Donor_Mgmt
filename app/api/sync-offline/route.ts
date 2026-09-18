@@ -111,18 +111,18 @@ export const POST = protectedRoute(
 
           const errorMessage = error instanceof Error ? error.message : String(error);
 
-          await prisma.offlineSyncQueue.create({
-            data: {
-              userId: user.id,
-              entity: sync.entity,
-              entityId: sync.entityId,
-              action: sync.action,
-              payload: JSON.stringify(sync.payload),
-              status: 'failed',
-              errorMessage,
-              syncAttempts: 1,
-            },
-          });
+await prisma.offlineSyncQueue.create({
+  data: {
+    userId: user.id,
+    entity: sync.entity,
+    entityId: sync.entityId || '',
+    action: sync.action,
+    payload: JSON.stringify(sync.payload),
+    status: 'failed',
+    errorMessage,
+    syncAttempts: 1,
+  },
+});
 
           results.conflicts.push({
             queueId: sync.entityId || '',
