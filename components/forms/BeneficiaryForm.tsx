@@ -106,7 +106,7 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
             label="First Name"
             placeholder="Enter first name"
             required
-            error={errors.firstName}
+            error={errors.firstName?.message}
           />
         )}
       />
@@ -119,7 +119,7 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
             {...field}
             label="Last Name"
             placeholder="Enter last name"
-            error={errors.lastName}
+            error={errors. lastName?.message}
           />
         )}
       />
