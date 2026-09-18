@@ -123,16 +123,18 @@ Select.displayName = 'Select';
 // CHECKBOX
 // ============================================================================
 
-interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value'> {
   label: string;
+  checked?: boolean;
 }
 
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, ...props }, ref) => (
+  ({ label, checked, ...props }, ref) => (
     <label className="flex items-center space-x-2 cursor-pointer">
       <input
         ref={ref}
         type="checkbox"
+        checked={checked}
         {...props}
         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
       />
