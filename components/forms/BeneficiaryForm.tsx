@@ -295,7 +295,9 @@ export const BeneficiaryRegistrationForm: React.FC<BeneficiaryRegistrationFormPr
           control={control}
           render={({ field }) => (
             <Checkbox
-              {...field}
+              checked={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
               label="Has Ration Card"
             />
           )}
