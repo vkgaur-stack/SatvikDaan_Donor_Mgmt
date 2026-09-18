@@ -1,16 +1,17 @@
 // app/api/sync/offline/route.ts - Offline data sync & conflict resolution
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { protectedRoute, validateRequestBody } from '@/lib/auth';
-import { successResponse, errorResponse } from '@/lib/helpers';
+import { successResponse, errorResponse, createAuditLog } from '@/lib/helpers';
 import { encryptField, decryptField } from '@/lib/crypto';
 import {
-  successResponse,
-  errorResponse,
-  createAuditLog,
-} from '@/utils/helpers';
-import { encryptField } from '@/utils/crypto';
+  ProcessSyncRequest,
+  ProcessSyncResponse,
+  AuthUser,
+  ApiError,
+  ErrorCode,
+  OfflineSyncQueueItem,
+} from '@/types';
 import {
   ProcessSyncRequest,
   ProcessSyncResponse,
