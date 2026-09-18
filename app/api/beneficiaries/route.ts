@@ -160,17 +160,17 @@ export async function POST(request: NextRequest) {
         );
 
         const response: DonationResponse = {
-          id: donation.id,
-          donorId: donation.donorId,
-          amount: donation.amount,
-          currency: donation.currency,
-          donationDate: donation.donationDate.toISOString(),
-          paymentMethod: donation.paymentMethod,
-          status: donation.status,
-          taxReceiptStatus: donation.taxReceiptStatus,
-          acknowledgmentSent: donation.acknowledgmentSent,
-          createdAt: donation.createdAt.toISOString(),
-        };
+  id: donation.id,
+  donorId: donation.donorId,
+  amount: Number(donation.amount),
+  currency: donation.currency,
+  donationDate: donation.donationDate.toISOString(),
+  paymentMethod: donation.paymentMethod,
+  status: donation.status,
+  taxReceiptStatus: donation.taxReceiptStatus,
+  acknowledgmentSent: donation.acknowledgmentSent,
+  createdAt: donation.createdAt.toISOString(),
+};
 
         return successResponse(response, 201, 'Donation recorded successfully');
       } catch (error) {
