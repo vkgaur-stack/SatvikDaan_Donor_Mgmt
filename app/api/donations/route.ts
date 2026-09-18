@@ -15,8 +15,8 @@ import {
   sendDonationThankYouEmail,
   generateReceiptNumber,
   formatAmountForRazorpay,
-} from '@/utils/helpers';
-import { verifyRazorpaySignature, decryptField } from '@/utils/crypto';
+} from '@/lib/helpers';
+import { verifyRazorpaySignature, decryptField } from '@/lib/crypto';
 import {
   CreateDonationRequest,
   RazorpayDonationRequest,
