@@ -1,71 +1,66 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { protectedRoute } from '@/lib/auth';
-import { successResponse, errorResponse, createAuditLog, getBeneficiaryOrThrow } from '@/lib/helpers';
-import { decryptField } from '@/lib/crypto';
-import { AuthUser } from '@/types';
-
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest) {
   return protectedRoute(
     async (req: NextRequest, user: AuthUser) => {
       try {
-        const beneficiaryId = params.id;
+        const { searchParams } = new URL(request.url);
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '10');
+        const skip = (page - 1) * limit;
 
-        const beneficiary = await getBeneficiaryOrThrow(
-          beneficiaryId,
-          user.organizationId
-        );
-
-        // Fetch related data
-        const [household, enrollments, documents, caseNotes] = await Promise.all([
-          prisma.household.findUnique({ where: { beneficiaryId } }),
-          prisma.enrollment.findMany({
-            where: { beneficiaryId, deletedAt: null },
-            include: {
-              program: { select: { id: true, name: true, category: true } },
-              aidDeliveries: { take: 5 },
-            },
-          }),
-          prisma.document.findMany({
-            where: { beneficiaryId, deletedAt: null },
+        // List all beneficiaries for the organization
+        const [beneficiaries, total] = await Promise.all([
+          prisma.beneficiary.findMany({
+            where: { organizationId: user.organizationId, deletedAt: null },
             select: {
               id: true,
-              documentType: true,
-              fileName: true,
-              isVerified: true,
-              uploadedAt: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              email: true,
+              gender: true,
+              dateOfBirth: true,
+              address: true,
+              enrollmentStatus: true,
+              createdAt: true,
             },
-          }),
-          prisma.caseNote.findMany({
-            where: { beneficiaryId },
+            skip,
+            take: limit,
             orderBy: { createdAt: 'desc' },
-            take: 5,
+          }),
+          prisma.beneficiary.count({
+            where: { organizationId: user.organizationId, deletedAt: null },
           }),
         ]);
+
+        // Decrypt PII fields
+        const decryptedBeneficiaries = beneficiaries.map(b => ({
+          ...b,
+          phone: decryptField(b.phone || ''),
+          email: decryptField(b.email || ''),
+          address: decryptField(b.address || ''),
+        }));
 
         await createAuditLog(
           user.organizationId,
           user.id,
-          'view',
-          'beneficiary',
-          beneficiaryId,
+          'list',
+          'beneficiaries',
+          '',
           req
         );
 
-        const response = {
-          ...beneficiary,
-          phone: decryptField(beneficiary.phone || ''),
-          email: decryptField(beneficiary.email || ''),
-          address: decryptField(beneficiary.address || ''),
-          household,
-          enrollments,
-          documents,
-          recentCaseNotes: caseNotes,
-          createdAt: beneficiary.createdAt.toISOString(),
-          updatedAt: beneficiary.updatedAt.toISOString(),
-        };
-
-        return successResponse(response, 200);
+        return successResponse(
+          {
+            data: decryptedBeneficiaries,
+            pagination: {
+              page,
+              limit,
+              total,
+              pages: Math.ceil(total / limit),
+            },
+          },
+          200
+        );
       } catch (error) {
         return errorResponse(error);
       }
