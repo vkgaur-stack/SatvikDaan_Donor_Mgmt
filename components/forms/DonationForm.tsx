@@ -345,7 +345,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
                 <Select
                   {...field}
                   label="Program (Optional)"
-                  options={programs}
+                  options={programs.map(p => ({ value: p.id, label: p.label }))}
                   placeholder="Select program"
                   error={errors.programId}
                 />
