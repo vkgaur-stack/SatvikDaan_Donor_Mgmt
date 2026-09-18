@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { protectedRoute, validateRequestBody } from '@/middleware/auth';
+import { protectedRoute, validateRequestBody } from '@/lib/auth';
 import {
   successResponse,
   errorResponse,
